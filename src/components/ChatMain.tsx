@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Message, ChatSession } from "@/app/page";
 import { skills, stageIcons } from "@/lib/skills";
+import SkillsPanel from "@/components/SkillsPanel";
 
 const STAGE_ORDER = ["research", "content", "blog", "landing", "distribution", "analytics", "automation", "meta"];
 
@@ -48,9 +49,15 @@ export default function ChatMain({
   const [streamingContent, setStreamingContent] = useState("");
   const [streamingSkill, setStreamingSkill] = useState<{ slug: string; title: string } | undefined>();
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [skillsPanelOpen, setSkillsPanelOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const currentSessionIdRef = useRef<string | null>(null);
+
+  function handleSelectSkill(skillTitle: string) {
+    setInput(skillTitle);
+    setTimeout(() => textareaRef.current?.focus(), 50);
+  }
 
   const messages = session?.messages ?? [];
 
@@ -175,8 +182,8 @@ export default function ChatMain({
   if (!session && !isLoading) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-[#1a1a1a]">
-        {/* Topbar */}
-        <Topbar sidebarOpen={sidebarOpen} onToggleSidebar={onToggleSidebar} title={null} />
+        <Topbar sidebarOpen={sidebarOpen} onToggleSidebar={onToggleSidebar} title={null} onOpenSkills={() => setSkillsPanelOpen(true)} />
+        <SkillsPanel isOpen={skillsPanelOpen} onClose={() => setSkillsPanelOpen(false)} onSelectSkill={handleSelectSkill} />
 
         {/* Welcome */}
         <div className="flex-1 overflow-y-auto">
@@ -259,7 +266,8 @@ export default function ChatMain({
   // ── Active chat ──
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-[#1a1a1a]">
-      <Topbar sidebarOpen={sidebarOpen} onToggleSidebar={onToggleSidebar} title={session?.title ?? null} />
+      <Topbar sidebarOpen={sidebarOpen} onToggleSidebar={onToggleSidebar} title={session?.title ?? null} onOpenSkills={() => setSkillsPanelOpen(true)} />
+      <SkillsPanel isOpen={skillsPanelOpen} onClose={() => setSkillsPanelOpen(false)} onSelectSkill={handleSelectSkill} />
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto">
@@ -358,7 +366,12 @@ export default function ChatMain({
 
 // ── Sub-components ──
 
-function Topbar({ sidebarOpen, onToggleSidebar, title }: { sidebarOpen: boolean; onToggleSidebar: () => void; title: string | null }) {
+function Topbar({ sidebarOpen, onToggleSidebar, title, onOpenSkills }: {
+  sidebarOpen: boolean;
+  onToggleSidebar: () => void;
+  title: string | null;
+  onOpenSkills: () => void;
+}) {
   return (
     <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1a1a1a]">
       {!sidebarOpen && (
@@ -368,9 +381,18 @@ function Topbar({ sidebarOpen, onToggleSidebar, title }: { sidebarOpen: boolean;
           </svg>
         </button>
       )}
-      <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+      <span className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
         {title ?? "Affitor Skills"}
       </span>
+      <button
+        onClick={onOpenSkills}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium transition-colors"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h10" />
+        </svg>
+        52 Skills
+      </button>
     </div>
   );
 }
