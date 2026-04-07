@@ -34,9 +34,12 @@ export async function POST(req: NextRequest) {
   }
 
   let userInput: string;
+  let history: Array<{ role: "user" | "assistant"; content: string }> = [];
+
   try {
     const body = await req.json();
     userInput = body.userInput?.trim();
+    history = Array.isArray(body.history) ? body.history : [];
   } catch {
     return NextResponse.json({ error: "Request không hợp lệ." }, { status: 400 });
   }
@@ -45,7 +48,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Vui lòng nhập yêu cầu." }, { status: 400 });
   }
 
-  // Step 1: Route — identify which skill to use
+  // Step 1: Route — identify which skill to use (only for first message or new topics)
   let slug: string;
   let userMessage: string;
 
@@ -58,28 +61,31 @@ export async function POST(req: NextRequest) {
     });
 
     const raw = routerRes.content[0].type === "text" ? routerRes.content[0].text : "{}";
-    // Strip possible markdown code fences
     const jsonStr = raw.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
     const parsed = JSON.parse(jsonStr);
     slug = parsed.slug || "skill-finder";
     userMessage = parsed.userMessage || userInput;
   } catch {
-    // Fallback: use skill-finder with original input
     slug = "skill-finder";
     userMessage = userInput;
   }
 
   const skill = skills.find((s) => s.slug === slug) || skills.find((s) => s.slug === "skill-finder")!;
 
-  // Step 2: Run the skill with Vietnamese instruction
+  // Step 2: Run with conversation history + Vietnamese instruction
   const systemPrompt = skill.systemPrompt +
-    "\n\n---\nQUAN TRỌNG: Luôn trả lời bằng tiếng Việt. Mọi nội dung, phân tích, gợi ý đều phải bằng tiếng Việt.";
+    "\n\n---\nQUAN TRỌNG: Luôn trả lời bằng tiếng Việt. Mọi nội dung, phân tích, gợi ý đều phải bằng tiếng Việt. Nhớ ngữ cảnh từ các tin nhắn trước trong cuộc hội thoại.";
+
+  // Build messages: prior history + current user message
+  const chatMessages: Array<{ role: "user" | "assistant"; content: string }> = [
+    ...history.slice(0, -1), // exclude the last user message (already in userInput)
+    { role: "user", content: userMessage },
+  ];
 
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
     async start(controller) {
-      // First, send which skill was selected
       const meta = JSON.stringify({ skill: { slug: skill.slug, title: skill.title } });
       controller.enqueue(encoder.encode(`data: ${JSON.stringify({ meta: JSON.parse(meta) })}\n\n`));
 
@@ -88,7 +94,7 @@ export async function POST(req: NextRequest) {
           model: "claude-sonnet-4-6",
           max_tokens: 4096,
           system: systemPrompt,
-          messages: [{ role: "user", content: userMessage }],
+          messages: chatMessages,
         });
 
         for await (const event of anthropicStream) {
