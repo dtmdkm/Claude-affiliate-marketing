@@ -167,7 +167,7 @@ export default function ChatSidebar({
       <div className="border-t border-gray-200 dark:border-gray-800 px-3 py-3">
         <p className="text-xs text-gray-400 text-center">
           Powered by{" "}
-          <span className="text-gray-500 dark:text-gray-400 font-medium">Claude claude-sonnet-4-6</span>
+          <span className="text-gray-500 dark:text-gray-400 font-medium">Minh Hòa Tây</span>
         </p>
       </div>
     </div>
