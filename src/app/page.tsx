@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { skills, stages, stageIcons, stageColors } from "@/lib/skills";
 import SkillCard from "@/components/SkillCard";
+import CommandBar from "@/components/CommandBar";
 
 const stageOrder = ["research", "content", "blog", "landing", "distribution", "analytics", "automation", "meta"];
 
@@ -86,19 +87,27 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Hero */}
+      {/* Hero + Command Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-6">
         <div className="text-center mb-8">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3">
-            52 AI Skills for{" "}
+            52 AI Skills cho{" "}
             <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
               Affiliate Marketing
             </span>
           </h2>
-          <p className="text-slate-400 text-base max-w-2xl mx-auto">
-            Research niches, write content, build landing pages, track performance — powered by Claude AI.
-            Click any skill to get started.
+          <p className="text-slate-400 text-base max-w-2xl mx-auto mb-8">
+            Ra lệnh tự do — AI tự chọn skill phù hợp và trả lời bằng tiếng Việt.
+            Hoặc chọn skill thủ công bên dưới.
           </p>
+          <CommandBar />
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-4 my-10">
+          <div className="flex-1 border-t border-slate-800/60" />
+          <span className="text-slate-500 text-sm px-2">hoặc chọn skill thủ công</span>
+          <div className="flex-1 border-t border-slate-800/60" />
         </div>
 
         {/* Stage filters */}

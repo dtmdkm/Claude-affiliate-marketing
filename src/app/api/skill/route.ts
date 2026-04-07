@@ -40,10 +40,13 @@ export async function POST(req: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       try {
+        const systemPrompt = skill.systemPrompt +
+          "\n\n---\nQUAN TRỌNG: Luôn trả lời bằng tiếng Việt. Mọi nội dung, phân tích, gợi ý đều phải bằng tiếng Việt.";
+
         const anthropicStream = anthropic.messages.stream({
           model: "claude-sonnet-4-6",
           max_tokens: 4096,
-          system: skill.systemPrompt,
+          system: systemPrompt,
           messages: [{ role: "user", content: userMessage }],
         });
 
